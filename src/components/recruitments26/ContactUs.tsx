@@ -8,8 +8,6 @@ export default function ContactUs() {
   return (
     <section id="contact" className="relative w-full overflow-hidden bg-black px-4 py-16 sm:px-6 md:px-8">
       <div className="mx-auto max-w-[1283px]">
-        {/* Red Line Divider */}
-        <div className="mb-16 h-[2px] w-full bg-[#E51E26]" />
 
         <div className="flex flex-col items-center justify-between gap-12 lg:flex-row lg:items-start lg:gap-16 lg:px-4">
           

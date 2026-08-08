@@ -33,23 +33,14 @@ function DomainCard({
     >
       {/* Desktop Background */}
       {bgSvg && (
-        <div className="absolute inset-0 z-0 hidden md:block">
-          <img
-            src={bgSvg}
-            alt="Desktop Card Background"
-            className="h-full w-full object-fill"
-          />
-          {/* Gradient Overlay for alternating fade effect */}
-          <div
-            className={cn(
-              "absolute inset-0 pointer-events-none",
-              reverse
-                ? "bg-gradient-to-r from-black from-5% via-black/80 via-30% to-transparent to-60%"
-                : "bg-gradient-to-l from-black from-5% via-black/80 via-30% to-transparent to-60%"
-            )}
-          />
-        </div>
-      )}
+  <div className="absolute inset-0 z-0 hidden md:block">
+    <img
+      src={bgSvg}
+      alt="Desktop Card Background"
+      className="h-full w-full object-fill"
+    />
+  </div>
+)}
 
       {/* Mobile Background & Fallback */}
       <div className="absolute inset-0 z-0 block md:hidden">

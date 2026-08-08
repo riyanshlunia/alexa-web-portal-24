@@ -1,101 +1,132 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { ArrowRight } from "lucide-react"
+import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const CANVAS_WIDTH = 1440
-const CANVAS_HEIGHT = 1929
+type FieldId =
+  | "name"
+  | "registrationNumber"
+  | "phoneNumber"
+  | "srmistEmail"
+  | "githubProfile"
+  | "linkedinProfile";
 
-const ACCENT_RED = "#C32325"
-const FONT_FAMILY = "'Formula1', var(--font-montserrat-alternates), sans-serif"
+type FormData = {
+  name: string;
+  registrationNumber: string;
+  phoneNumber: string;
+  srmistEmail: string;
+  githubProfile: string;
+  linkedinProfile: string;
+  firstDomain: string;
+  secondDomain: string;
+};
 
-const BG_WIDTH = 1440
-const BG_HEIGHT = 2251
+type FormErrors = Partial<Record<FieldId | "domains", string>>;
 
-const TITLE = {
-  left: 389,
-  top: 255,
-  width: 662,
-  height: 36,
-  fontSize: 64,
-}
+type SubmissionStatus =
+  | "success"
+  | "duplicate"
+  | "serverError"
+  | null;
 
-const DOMAIN_OPTIONS = ["Technical", "Creatives", "Events", "Business"]
+type DomainOptionProps = {
+  name: "firstDomain" | "secondDomain";
+  value: string;
+  selectedValue: string;
+  onChange: (
+    domainType: "firstDomain" | "secondDomain",
+    value: string
+  ) => void;
+  label: string;
+};
 
-const DOMAIN_GROUPS = [
-  { id: "firstDomain", label: "Choose Your First Domain", left: 243, top: 1010, width: 986, height: 266 },
-  { id: "secondDomain", label: "Choose Your Second Domain", left: 235, top: 1362, width: 986, height: 266 },
-] as const
+const ACCENT_RED = "#C32325";
 
-const SUBMIT_BUTTON = { left: 500, top: 1713, width: 427, height: 116 }
+const FONT_FAMILY =
+  "'Formula1', var(--font-montserrat-alternates), sans-serif";
 
-const MOBILE_CANVAS_WIDTH = 393
-const MOBILE_CANVAS_HEIGHT = 1623
-
-const MOBILE_FIELD_BOX: Record<FieldId, { left: number; top: number; width: number; height: number }> = {
-  name: { left: 43, top: 286, width: 307.0776, height: 73.8511 },
-  registerNumber: { left: 43, top: 380.43, width: 307.0776, height: 76.4266 },
-  phone: { left: 43, top: 477.43, width: 307.0776, height: 73.8502 },
-  srmistEmail: { left: 43, top: 571.86, width: 307.0776, height: 78.1439 },
-  github: { left: 43, top: 670.86, width: 307.0776, height: 78.1439 },
-  linkedin: { left: 43, top: 769.86, width: 307.0776, height: 78.1439 },
-}
-
-const MOBILE_DOMAIN_GROUPS = [
-  { id: "firstDomain", label: "Choose Your First Domain", left: 28, top: 904, width: 338, height: 241.3786 },
-  { id: "secondDomain", label: "Choose Your Second Domain", left: 15, top: 1198, width: 363, height: 242.3786 },
-] as const
-
-// The submit-button numbers you sent were identical to the second-domain box (a paste mix-up), so this is
-// a placeholder position/size until the real ones come through — flagged in the summary, not silently guessed.
-const MOBILE_SUBMIT_BUTTON = { left: 86.5, top: 1493, width: 220, height: 70 }
-
-type FieldId = "name" | "registerNumber" | "phone" | "srmistEmail" | "github" | "linkedin"
-
-const FIELDS: {
-  id: FieldId
-  label: string
-  required: boolean
-  type: string
-  placeholder: string
-  left: number
-  top: number
-  width: number
-  height: number
-  countryCode?: string
-}[] = [
-  { id: "name", label: "Name*", required: true, type: "text", placeholder: "Name", left: 67, top: 366.01, width: 596.9625, height: 143.5675 },
-  { id: "registerNumber", label: "Register Number*", required: true, type: "text", placeholder: "RA0123456789012", left: 769.04, top: 361, width: 596.9625, height: 148.5742 },
-  { id: "phone", label: "Phone Number*", required: true, type: "tel", placeholder: "012 345 6789", left: 72.01, top: 556.32, width: 596.9625, height: 143.5658, countryCode: "+91" },
-  { id: "srmistEmail", label: "SRMIST Email*", required: true, type: "email", placeholder: "xyz@srmist.edu.in", left: 769.04, top: 547.97, width: 596.9625, height: 151.9127 },
-  { id: "github", label: "Github Profile Link", required: false, type: "text", placeholder: "Optional unless Technical is chosen", left: 72.01, top: 746, width: 596.9625, height: 143.8815 },
-  { id: "linkedin", label: "LinkedIn Profile Link*", required: true, type: "text", placeholder: "https://linkedin.com/in/username", left: 769.04, top: 737.97, width: 596.9625, height: 151.9127 },
-]
-
-type FormData = Record<FieldId, string> & { firstDomain: string; secondDomain: string }
+const DOMAIN_OPTIONS = [
+  "Technical",
+  "Creatives",
+  "Events",
+  "Business",
+];
 
 const INITIAL_FORM_DATA: FormData = {
   name: "",
-  registerNumber: "",
-  phone: "",
+  registrationNumber: "",
+  phoneNumber: "",
   srmistEmail: "",
-  github: "",
-  linkedin: "",
+  githubProfile: "",
+  linkedinProfile: "",
   firstDomain: "",
   secondDomain: "",
+};
+
+function validateField(
+  id: FieldId,
+  value: string,
+  required: boolean
+): string {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return required ? "This field is required." : "";
+  }
+
+  if (id === "name") {
+    if (!/^[A-Za-z ]+$/.test(trimmedValue)) {
+      return "Name can only contain letters.";
+    }
+  }
+
+  if (id === "registrationNumber") {
+    if (!/^RA\d{13}$/.test(trimmedValue)) {
+      return "Must start with RA followed by 13 digits.";
+    }
+  }
+
+  if (id === "phoneNumber") {
+    if (!/^\d{10}$/.test(trimmedValue)) {
+      return "Enter a valid 10-digit phone number.";
+    }
+  }
+
+  if (id === "srmistEmail") {
+    if (!/^[^\s@]+@srmist\.edu\.in$/.test(trimmedValue)) {
+      return "Please enter a valid SRMIST email address.";
+    }
+  }
+
+  if (id === "githubProfile") {
+    if (
+      !/^(https?:\/\/)?(www\.)?github\.com\/[A-Za-z0-9-]+\/?$/.test(
+        trimmedValue
+      )
+    ) {
+      return "Enter a valid GitHub profile link.";
+    }
+  }
+
+  if (id === "linkedinProfile") {
+    if (
+      !/^(https?:\/\/)?(www\.)?linkedin\.com\/(?:in\/)?[A-Za-z0-9-]+\/?$/.test(
+        trimmedValue
+      )
+    ) {
+      return "Enter a valid LinkedIn profile link.";
+    }
+  }
+
+  return "";
 }
 
-function validateField(id: FieldId, value: string, required: boolean): string {
-  if (!value.trim()) return required ? "This field is required." : ""
-  if (id === "name" && !/^[A-Za-z ]+$/.test(value.trim())) return "Name can only contain letters."
-  if (id === "registerNumber" && !/^RA\d{13}$/.test(value.trim())) {
-    return "Must start with RA followed by 13 digits (15 characters total)."
-  }
-  if (id === "phone" && !/^\d{10}$/.test(value.trim())) return "Enter a valid 10-digit phone number."
-  if (id === "srmistEmail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return "Enter a valid email address."
-  return ""
-}
+const inputWrapperStyle = {
+  backgroundColor: "#5D5D5D",
+  border: "2px solid #FFFFFF",
+};
 
 function FieldBox({
   field,
@@ -104,118 +135,390 @@ function FieldBox({
   error,
   onChange,
 }: {
-  field: (typeof FIELDS)[number]
-  label: string
-  value: string
-  error: string
-  onChange: (value: string) => void
+  field: {
+    id: FieldId;
+    label: string;
+    required: boolean;
+    type: string;
+    placeholder: string;
+    countryCode?: string;
+  };
+  label: string;
+  value: string;
+  error: string;
+  onChange: (value: string) => void;
 }) {
   return (
-    <div className="absolute" style={{ left: field.left, top: field.top, width: field.width }}>
+    <div>
       <label
+        htmlFor={field.id}
         className="block font-extrabold mb-3"
-        style={{ color: ACCENT_RED, fontFamily: FONT_FAMILY, fontSize: 40, lineHeight: "46.74px", letterSpacing: "0.33px" }}
+        style={{
+          color: ACCENT_RED,
+          fontFamily: FONT_FAMILY,
+          fontSize: 24,
+          lineHeight: "1.15",
+          letterSpacing: "0.33px",
+        }}
       >
         {label}
       </label>
+
       <div
         className="flex items-stretch overflow-hidden rounded-2xl"
-        style={{
-          backgroundColor: "#5D5D5D",
-          borderWidth: "3px",
-          borderStyle: "solid",
-          borderImage: "linear-gradient(90deg, #757373 0%, #FFFFFF 100%) 1",
-        }}
+        style={inputWrapperStyle}
       >
         {field.countryCode && (
           <span
             className="flex items-center px-4 font-normal text-white/70 border-r border-white/10"
-            style={{ fontFamily: FONT_FAMILY, fontSize: 18 }}
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 18,
+            }}
           >
             {field.countryCode}
           </span>
         )}
+
         <input
+          id={field.id}
+          name={field.id}
           type={field.type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder}
-          className="w-full bg-transparent px-5 py-4 font-normal text-white placeholder-white outline-none"
-          style={{ fontFamily: FONT_FAMILY, fontSize: 28, lineHeight: "26.71px", letterSpacing: "0.17px" }}
+          className="w-full bg-transparent px-5 py-4 font-normal text-white outline-none"
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 18,
+            lineHeight: "1.2",
+            letterSpacing: "0.17px",
+          }}
         />
       </div>
+
       {error && (
-        <p className="mt-2 font-normal" style={{ color: ACCENT_RED, fontFamily: FONT_FAMILY, fontSize: 14 }}>
+        <p
+          data-form-error="true"
+          className="mt-2 font-normal"
+          style={{
+            color: ACCENT_RED,
+            fontFamily: FONT_FAMILY,
+            fontSize: 14,
+          }}
+        >
           {error}
         </p>
       )}
     </div>
-  )
+  );
 }
 
 function DomainOption({
+  name,
+  value,
+  selectedValue,
+  onChange,
   label,
-  selected,
-  onSelect,
-}: {
-  label: string
-  selected: boolean
-  onSelect: () => void
-}) {
+}: DomainOptionProps) {
+  const selected = selectedValue === value;
+
   return (
-    <button type="button" onClick={onSelect} className="flex items-center gap-3">
+    <button
+      type="button"
+      onClick={() => onChange(name, value)}
+      className="flex items-center gap-3"
+    >
       <span
         className="flex h-6 w-6 items-center justify-center rounded-full border-2"
-        style={{ borderColor: "#918C8C" }}
+        style={{
+          borderColor: selected ? ACCENT_RED : "#918C8C",
+        }}
       >
-        {selected && <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: ACCENT_RED }} />}
+        {selected && (
+          <span
+            className="h-3.5 w-3.5 rounded-full"
+            style={{
+              backgroundColor: ACCENT_RED,
+            }}
+          />
+        )}
       </span>
-      <span className="font-extrabold text-white" style={{ fontFamily: FONT_FAMILY, fontSize: 20 }}>
+
+      <span
+        className="font-extrabold text-white"
+        style={{
+          fontFamily: FONT_FAMILY,
+          fontSize: 18,
+        }}
+      >
         {label}
       </span>
     </button>
-  )
+  );
 }
 
-export default function RegisterForm() {
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA)
-  const [errors, setErrors] = useState<Partial<Record<FieldId | "domains", string>>>({})
-  const [submitted, setSubmitted] = useState(false)
+const FIELDS: {
+  id: FieldId;
+  label: string;
+  required: boolean;
+  type: string;
+  placeholder: string;
+  countryCode?: string;
+}[] = [
+  {
+    id: "name",
+    label: "Name*",
+    required: true,
+    type: "text",
+    placeholder: "Name",
+  },
+  {
+    id: "registrationNumber",
+    label: "Register Number*",
+    required: true,
+    type: "text",
+    placeholder: "RAXXXXXXXXXXXXX",
+  },
+  {
+    id: "phoneNumber",
+    label: "Phone Number*",
+    required: true,
+    type: "tel",
+    placeholder: "012 345 6789",
+    countryCode: "+91",
+  },
+  {
+    id: "srmistEmail",
+    label: "SRMIST Email*",
+    required: true,
+    type: "email",
+    placeholder: "xyz@srmist.edu.in",
+  },
+  {
+    id: "githubProfile",
+    label: "Github Profile Link",
+    required: false,
+    type: "text",
+    placeholder: "Optional",
+  },
+  {
+    id: "linkedinProfile",
+    label: "LinkedIn Profile Link",
+    required: false,
+    type: "text",
+    placeholder: "Optional",
+  },
+];
 
-  // GitHub is only required when either domain choice is Technical — every other field is always required.
-  const githubRequired = formData.firstDomain === "Technical" || formData.secondDomain === "Technical"
-  const isRequired = (field: (typeof FIELDS)[number]) => (field.id === "github" ? githubRequired : field.required)
-  const fieldLabel = (field: (typeof FIELDS)[number]) =>
-    field.id === "github" ? `Github Profile Link${githubRequired ? "*" : ""}` : field.label
+export default function RegistrationForm() {
+  const router = useRouter();
 
-  const setFieldValue = (id: FieldId, value: string) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
+  const [isMobileMenuOpen, setIsMobileMenuOpen] =
+    useState(false);
 
-  const selectDomain = (group: "firstDomain" | "secondDomain", value: string) => {
-    setFormData((prev) => ({ ...prev, [group]: value }))
-  }
+  const [formData, setFormData] =
+    useState<FormData>(INITIAL_FORM_DATA);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const [errors, setErrors] =
+    useState<FormErrors>({});
 
-    const nextErrors: Partial<Record<FieldId | "domains", string>> = {}
+  const [showErrorPopup, setShowErrorPopup] =
+    useState(false);
+
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus>(null);
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
+
+  const githubRequired =
+    formData.firstDomain === "Technical" ||
+    formData.secondDomain === "Technical";
+
+  const isRequired = (
+    field: (typeof FIELDS)[number]
+  ) => {
+    if (field.id === "githubProfile") {
+      return githubRequired;
+    }
+
+    return field.required;
+  };
+
+  const fieldLabel = (
+    field: (typeof FIELDS)[number]
+  ) => {
+    if (field.id === "githubProfile") {
+      return githubRequired
+        ? "Github Profile Link*"
+        : "Github Profile Link";
+    }
+
+    return field.label;
+  };
+
+  const setFieldValue = (
+    id: FieldId,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [id]: "",
+    }));
+
+    setSubmissionStatus(null);
+  };
+
+  const handleFieldChange = (
+    id: FieldId,
+    value: string
+  ) => {
+    if (id === "phoneNumber") {
+      const numericValue = value
+        .replace(/\D/g, "")
+        .slice(0, 10);
+
+      setFieldValue(id, numericValue);
+      return;
+    }
+
+    if (id === "registrationNumber") {
+      const upperValue = value.toUpperCase();
+
+      const regex = /^(?:R|RA\d{0,13})?$/;
+
+      if (regex.test(upperValue)) {
+        setFieldValue(id, upperValue);
+      }
+
+      return;
+    }
+
+    setFieldValue(id, value);
+  };
+
+  const handleDomainChange = (
+    domainType:
+      | "firstDomain"
+      | "secondDomain",
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [domainType]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      domains: "",
+      githubProfile: "",
+    }));
+
+    setSubmissionStatus(null);
+  };
+
+  const validateForm = () => {
+    const nextErrors: FormErrors = {};
+
     for (const field of FIELDS) {
-      const message = validateField(field.id, formData[field.id], isRequired(field))
-      if (message) nextErrors[field.id] = message
-    }
-    if (!formData.firstDomain || !formData.secondDomain) {
-      nextErrors.domains = "Please select both a first and second domain."
-    } else if (formData.firstDomain === formData.secondDomain) {
-      nextErrors.domains = "First and second domain must be different."
+      const message = validateField(
+        field.id,
+        formData[field.id],
+        isRequired(field)
+      );
+
+      if (message) {
+        if (
+          field.id === "githubProfile" &&
+          githubRequired &&
+          !formData.githubProfile.trim()
+        ) {
+          nextErrors.githubProfile =
+            "GitHub profile is compulsory when Technical is selected as a domain.";
+        } else {
+          nextErrors[field.id] = message;
+        }
+      }
     }
 
-    setErrors(nextErrors)
-    setSubmitted(Object.keys(nextErrors).length === 0)
-  }
+    if (
+      !formData.firstDomain ||
+      !formData.secondDomain
+    ) {
+      nextErrors.domains =
+        "Please select both a first and second domain.";
+    } else if (
+      formData.firstDomain ===
+      formData.secondDomain
+    ) {
+      nextErrors.domains =
+        "First and second domain must be different.";
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
+    if (isSubmitting) return;
+
+    setSubmissionStatus(null);
+
+    const isValid = validateForm();
+
+    if (!isValid) {
+      setShowErrorPopup(true);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await new Promise((resolve) =>
+        setTimeout(resolve, 700)
+      );
+
+      setSubmissionStatus("success");
+
+      setFormData(INITIAL_FORM_DATA);
+      setErrors({});
+
+      setTimeout(() => {
+        router.push("/recruitments26");
+      }, 2000);
+    } catch {
+      setSubmissionStatus("serverError");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const closeStatus = () => {
+    setSubmissionStatus(null);
+  };
 
   return (
-    <section className="relative w-full bg-black">
+    <section
+  className="registration-section relative w-full"
+  style={{
+    backgroundImage: "url('/recruitments26/image32645.svg')",
+    backgroundSize: "100% auto",
+    backgroundPosition: "center -340px",
+    backgroundRepeat: "no-repeat",
+    backgroundColor: "#000",
+  }}
+>
       <style>{`
         @font-face {
           font-family: 'Formula1';
@@ -224,6 +527,7 @@ export default function RegisterForm() {
           font-style: normal;
           font-display: swap;
         }
+
         @font-face {
           font-family: 'Formula1';
           src: url('/recruitments26/Formula1-Bold.ttf') format('truetype');
@@ -231,265 +535,450 @@ export default function RegisterForm() {
           font-style: normal;
           font-display: swap;
         }
+
+        input::placeholder {
+          color: rgba(255, 255, 255, 0.60);
+          opacity: 1;
+        }
+
+        .registration-section {
+  background-position: center -340px !important;
+}
+
+@media (max-width: 767px) {
+  .registration-section {
+    background-position: center -120px !important;
+  }
+}
       `}</style>
 
-      {/* Mobile layout — pixel-mapped from Figma, scaled responsively via container query units */}
-      <div className="lg:hidden relative z-10">
+      {isMobileMenuOpen && (
         <div
-          className="relative w-full mx-auto overflow-hidden"
-          style={{ containerType: "inline-size", aspectRatio: `${MOBILE_CANVAS_WIDTH} / ${MOBILE_CANVAS_HEIGHT}` }}
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-between px-8 py-16 lg:hidden"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, #6b0000 0%, #1a0000 50%, #000000 100%)",
+          }}
         >
-          <form
-            onSubmit={handleSubmit}
-            className="absolute top-0 left-0 bg-black"
-            style={{
-              width: MOBILE_CANVAS_WIDTH,
-              height: MOBILE_CANVAS_HEIGHT,
-              transform: `scale(calc(100cqw / ${MOBILE_CANVAS_WIDTH}px))`,
-              transformOrigin: "top left",
-            }}
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close menu"
+            className="absolute right-8 top-8 flex h-10 w-10 items-center justify-center"
           >
-            <Image
-              src="/recruitments26/image32645-mobile.svg"
-              alt=""
-              width={393}
-              height={572}
-              unoptimized
-              priority
-              className="absolute z-0 top-0 left-0 pointer-events-none select-none"
-            />
+            <span className="absolute block h-[3px] w-8 rotate-45 rounded-full bg-white" />
+            <span className="absolute block h-[3px] w-8 -rotate-45 rounded-full bg-white" />
+          </button>
 
-            <h1
-              className="absolute z-10 w-full text-center font-extrabold"
-              style={{ top: 90, color: ACCENT_RED, fontFamily: FONT_FAMILY, fontSize: 32, letterSpacing: 0.1 }}
-            >
-              Registration Form
-            </h1>
-
-            {FIELDS.map((field) => {
-              const box = MOBILE_FIELD_BOX[field.id]
-              return (
-                <div key={field.id} className="absolute z-10" style={{ left: box.left, top: box.top, width: box.width }}>
-                  <label
-                    className="block font-extrabold mb-1.5"
-                    style={{ color: ACCENT_RED, fontFamily: FONT_FAMILY, fontSize: 15 }}
-                  >
-                    {fieldLabel(field)}
-                  </label>
-                  <div
-                    className="flex items-stretch overflow-hidden"
-                    style={{
-                      backgroundColor: "#5D5D5D",
-                      borderWidth: "3px",
-                      borderStyle: "solid",
-                      borderImage: "linear-gradient(90deg, #757373 0%, #FFFFFF 100%) 1",
-                      borderRadius: "8.59px",
-                    }}
-                  >
-                    {field.countryCode && (
-                      <span className="flex items-center px-3 text-white/70" style={{ fontFamily: FONT_FAMILY, fontSize: 14 }}>
-                        {field.countryCode}
-                      </span>
-                    )}
-                    <input
-                      type={field.type}
-                      value={formData[field.id]}
-                      onChange={(e) => setFieldValue(field.id, e.target.value)}
-                      placeholder={field.placeholder}
-                      className="w-full bg-transparent px-3 py-2.5 text-white placeholder-white outline-none"
-                      style={{ fontFamily: FONT_FAMILY, fontSize: 14 }}
-                    />
-                  </div>
-                  {errors[field.id] && (
-                    <p className="mt-1" style={{ color: ACCENT_RED, fontFamily: FONT_FAMILY, fontSize: 11 }}>
-                      {errors[field.id]}
-                    </p>
-                  )}
-                </div>
-              )
-            })}
-
-            {MOBILE_DOMAIN_GROUPS.map((group) => (
-              <div key={group.id} className="absolute z-10" style={{ left: group.left, top: group.top, width: group.width, height: group.height }}>
-                <h2
-                  className="mb-5 text-center font-extrabold text-white"
-                  style={{ fontFamily: FONT_FAMILY, fontSize: 18 }}
-                >
-                  {group.label}
-                </h2>
-                <div className="flex w-fit mx-auto flex-col items-start gap-4">
-                  {DOMAIN_OPTIONS.map((option) => (
-                    <DomainOption
-                      key={option}
-                      label={option}
-                      selected={formData[group.id] === option}
-                      onSelect={() => selectDomain(group.id, option)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-            {errors.domains && (
-              <p
-                className="absolute z-10 w-full text-center"
-                style={{
-                  top: MOBILE_DOMAIN_GROUPS[1].top + MOBILE_DOMAIN_GROUPS[1].height + 12,
-                  color: ACCENT_RED,
-                  fontFamily: FONT_FAMILY,
-                  fontSize: 13,
-                }}
-              >
-                {errors.domains}
-              </p>
-            )}
-
+          <div className="flex flex-1 flex-col items-center justify-center gap-12">
             <button
-              type="submit"
-              className="absolute z-10 flex items-center justify-center gap-2 rounded-full border-2 font-extrabold text-white"
-              style={{
-                left: MOBILE_SUBMIT_BUTTON.left,
-                top: MOBILE_SUBMIT_BUTTON.top,
-                width: MOBILE_SUBMIT_BUTTON.width,
-                height: MOBILE_SUBMIT_BUTTON.height,
-                backgroundColor: ACCENT_RED,
-                borderColor: "#FFFFFF",
-                fontFamily: FONT_FAMILY,
-                fontSize: 16,
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                router.push("/recruitments26#home");
               }}
+              className="text-3xl font-bold tracking-wide text-white transition-colors hover:text-red-400"
             >
-              Register <ArrowRight size={18} />
+              Home
             </button>
 
-            {submitted && (
-              <p
-                className="absolute z-10 w-full text-center"
-                style={{
-                  top: MOBILE_SUBMIT_BUTTON.top + MOBILE_SUBMIT_BUTTON.height + 16,
-                  color: "#FFFFFF",
-                  fontFamily: FONT_FAMILY,
-                  fontSize: 13,
-                }}
-              >
-                Form validated successfully.
-              </p>
-            )}
-          </form>
-        </div>
-      </div>
-
-      {/* Desktop layout — pixel-mapped from Figma, scaled responsively via container query units */}
-      <div className="hidden lg:block relative z-10">
-        <div
-          className="relative w-full max-w-360 mx-auto overflow-hidden"
-          style={{ containerType: "inline-size", aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}
-        >
-          <form
-            onSubmit={handleSubmit}
-            className="absolute top-0 left-0"
-            style={{
-              width: CANVAS_WIDTH,
-              height: CANVAS_HEIGHT,
-              transform: "scale(calc(100cqw / 1440px))",
-              transformOrigin: "top left",
-            }}
-          >
-            <Image
-              src="/recruitments26/image32645.svg"
-              alt=""
-              width={BG_WIDTH}
-              height={BG_HEIGHT}
-              unoptimized
-              priority
-              className="absolute z-0 pointer-events-none select-none"
-              style={{ left: 0, top: 0 }}
-            />
-
-            <h1
-              className="absolute z-10 font-extrabold whitespace-nowrap"
-              style={{
-                left: TITLE.left,
-                top: TITLE.top,
-                width: TITLE.width,
-                height: TITLE.height,
-                fontSize: TITLE.fontSize,
-                lineHeight: "36px",
-                letterSpacing: 0.1,
-                textAlign: "center",
-                fontFamily: FONT_FAMILY,
-                color: ACCENT_RED,
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                router.push("/recruitments26#domain");
               }}
+              className="text-3xl font-bold tracking-wide text-white transition-colors hover:text-red-400"
             >
-              Registration Form
-            </h1>
-
-            {FIELDS.map((field) => (
-              <FieldBox
-                key={field.id}
-                field={field}
-                label={fieldLabel(field)}
-                value={formData[field.id]}
-                error={errors[field.id] ?? ""}
-                onChange={(value) => setFieldValue(field.id, value)}
-              />
-            ))}
-
-            {DOMAIN_GROUPS.map((group) => (
-              <div key={group.id} className="absolute z-10" style={{ left: group.left, top: group.top, width: group.width, height: group.height }}>
-                <h2
-                  className="mb-10 text-center font-extrabold text-white"
-                  style={{ fontFamily: FONT_FAMILY, fontSize: 44, lineHeight: "46.74px", letterSpacing: "0.33px" }}
-                >
-                  {group.label}
-                </h2>
-                <div className="grid w-fit mx-auto grid-cols-2 gap-x-24 gap-y-8 justify-items-start">
-                  {DOMAIN_OPTIONS.map((option) => (
-                    <DomainOption
-                      key={option}
-                      label={option}
-                      selected={formData[group.id] === option}
-                      onSelect={() => selectDomain(group.id, option)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-            {errors.domains && (
-              <p
-                className="absolute z-10 w-full text-center"
-                style={{ top: DOMAIN_GROUPS[1].top + DOMAIN_GROUPS[1].height + 12, color: ACCENT_RED, fontFamily: FONT_FAMILY, fontSize: 16 }}
-              >
-                {errors.domains}
-              </p>
-            )}
+              Domain
+            </button>
 
             <button
-              type="submit"
-              className="absolute z-10 flex items-center justify-center gap-2.5 rounded-full border-2 font-extrabold text-white"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                router.push("/recruitments26#roadmap");
+              }}
+              className="text-3xl font-bold tracking-wide text-white transition-colors hover:text-red-400"
+            >
+              Roadmap
+            </button>
+          </div>
+
+          <button
+            className="w-full max-w-[260px] rounded-full bg-[#C32325] py-4 text-xl font-bold text-white shadow-[0_0_20px_rgba(195,35,37,0.5)] transition-all hover:scale-105 hover:bg-[#a01c1e] active:scale-95"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              router.push(
+                "/recruitment26registerform"
+              );
+            }}
+          >
+            Register Now
+          </button>
+        </div>
+      )}
+
+      <nav className="relative z-50 flex w-full items-center justify-between px-4 py-4 sm:px-8 sm:py-6 md:px-12">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Image
+            src="/recruitments26/Vector.svg"
+            alt="Alexa Logo"
+            width={32}
+            height={32}
+            className="h-6 w-6 sm:h-8 sm:w-8"
+          />
+
+          <span className="text-base font-medium tracking-wide text-white sm:text-lg">
+            Alexa Developers SRM
+          </span>
+        </div>
+
+        <div className="relative hidden h-[26px] w-[420px] lg:block xl:h-[32px] xl:w-[520px]">
+          <Image
+            src="/recruitments26/Nav buttons.svg"
+            alt="Navigation links"
+            fill
+            className="object-contain"
+          />
+
+          <button
+            onClick={() =>
+              router.push("/recruitments26#home")
+            }
+            className="absolute left-0 top-0 h-full w-[12.5%] cursor-pointer"
+            aria-label="Home"
+          />
+
+          <button
+            onClick={() =>
+              router.push("/recruitments26#domain")
+            }
+            className="absolute left-[19.8%] top-0 h-full w-[16.4%] cursor-pointer"
+            aria-label="Domain"
+          />
+
+          <button
+            onClick={() =>
+              router.push("/recruitments26#roadmap")
+            }
+            className="absolute left-[43.1%] top-0 h-full w-[21.1%] cursor-pointer"
+            aria-label="Roadmap"
+          />
+
+          <button
+            onClick={() =>
+              router.push(
+                "/recruitment26registerform"
+              )
+            }
+            className="absolute right-0 top-0 h-full w-[29.4%] cursor-pointer rounded-full transition-colors hover:bg-white/10"
+            aria-label="Register Now"
+          />
+        </div>
+
+        <button
+          className="flex h-10 w-10 flex-col items-center justify-center gap-[6px] lg:hidden"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open menu"
+        >
+          <span className="block h-[3px] w-7 rounded-full bg-white" />
+          <span className="block h-[3px] w-7 rounded-full bg-white" />
+          <span className="block h-[3px] w-7 rounded-full bg-white" />
+        </button>
+      </nav>
+
+      {showErrorPopup && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border-2 border-white bg-[#1c1c1c] p-8 text-center shadow-[0_0_40px_rgba(195,35,37,0.45)]">
+            <div
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full"
               style={{
-                left: SUBMIT_BUTTON.left,
-                top: SUBMIT_BUTTON.top,
-                width: SUBMIT_BUTTON.width,
-                height: SUBMIT_BUTTON.height,
                 backgroundColor: ACCENT_RED,
-                borderColor: "#FFFFFF",
+              }}
+            >
+              <span
+                className="text-3xl font-bold text-white"
+                style={{
+                  fontFamily: FONT_FAMILY,
+                }}
+              >
+                !
+              </span>
+            </div>
+
+            <h2
+              className="mb-4 font-extrabold text-white"
+              style={{
                 fontFamily: FONT_FAMILY,
                 fontSize: 24,
               }}
             >
-              Submit <ArrowRight size={24} />
-            </button>
+              Please check your form
+            </h2>
 
-            {submitted && (
-              <p
-                className="absolute z-10 w-full text-center"
-                style={{ top: SUBMIT_BUTTON.top + SUBMIT_BUTTON.height + 20, color: "#FFFFFF", fontFamily: FONT_FAMILY, fontSize: 18 }}
-              >
-                Form validated successfully.
-              </p>
-            )}
-          </form>
+            <p
+              className="mb-7 text-white/80"
+              style={{
+                fontFamily: FONT_FAMILY,
+                fontSize: 15,
+                lineHeight: 1.5,
+              }}
+            >
+              Some fields above need to be corrected
+              before you can submit the form.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowErrorPopup(false);
+
+                setTimeout(() => {
+                  const firstError =
+                    document.querySelector(
+                      '[data-form-error="true"]'
+                    );
+
+                  firstError?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
+                }, 100);
+              }}
+              className="w-full rounded-full border-2 border-white py-3 font-extrabold text-white transition-transform duration-300 hover:scale-105"
+              style={{
+                backgroundColor: ACCENT_RED,
+                fontFamily: FONT_FAMILY,
+                fontSize: 17,
+              }}
+            >
+              Review Fields
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {submissionStatus && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/70 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border-2 border-white bg-[#1c1c1c] p-8 text-center shadow-[0_0_40px_rgba(195,35,37,0.45)]">
+            <div
+              className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full"
+              style={{
+                backgroundColor:
+                  submissionStatus === "success"
+                    ? "#168A45"
+                    : ACCENT_RED,
+              }}
+            >
+              <span
+                className="text-3xl font-bold text-white"
+                style={{
+                  fontFamily: FONT_FAMILY,
+                }}
+              >
+                {submissionStatus === "success"
+                  ? "✓"
+                  : "!"}
+              </span>
+            </div>
+
+            <h2
+              className="mb-4 font-extrabold text-white"
+              style={{
+                fontFamily: FONT_FAMILY,
+                fontSize: 24,
+              }}
+            >
+              {submissionStatus === "success" &&
+                "Registration successful!"}
+
+              {submissionStatus === "duplicate" &&
+                "Registration already exists"}
+
+              {submissionStatus === "serverError" &&
+                "Something went wrong"}
+            </h2>
+
+            <p
+              className="mb-7 text-white/80"
+              style={{
+                fontFamily: FONT_FAMILY,
+                fontSize: 15,
+                lineHeight: 1.5,
+              }}
+            >
+              {submissionStatus === "success" &&
+                "Your registration has been submitted successfully. Welcome to the journey!"}
+
+              {submissionStatus === "duplicate" &&
+                "A registration with these details already exists. Please check your details and try again."}
+
+              {submissionStatus === "serverError" &&
+                "We could not complete your registration right now. Please try again later."}
+            </p>
+
+            <button
+              type="button"
+              onClick={closeStatus}
+              className="w-full rounded-full border-2 border-white py-3 font-extrabold text-white transition-transform duration-300 hover:scale-105"
+              style={{
+                backgroundColor: ACCENT_RED,
+                fontFamily: FONT_FAMILY,
+                fontSize: 17,
+              }}
+            >
+              {submissionStatus === "success"
+                ? "Done"
+                : "Try Again"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto w-full max-w-6xl px-6 pt-5 pb-16 md:px-10 md:pt-16 lg:px-16"
+      >
+        <h1
+          className="mb-16 text-center font-extrabold"
+          style={{
+            color: ACCENT_RED,
+            fontFamily: FONT_FAMILY,
+            fontSize:
+              "clamp(36px, 5vw, 64px)",
+            lineHeight: 1,
+            letterSpacing: "0.1px",
+          }}
+        >
+          Registration Form
+        </h1>
+
+        <div className="grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-2">
+          {FIELDS.map((field) => (
+            <FieldBox
+              key={field.id}
+              field={field}
+              label={fieldLabel(field)}
+              value={formData[field.id]}
+              error={errors[field.id] ?? ""}
+              onChange={(value) =>
+                handleFieldChange(
+                  field.id,
+                  value
+                )
+              }
+            />
+          ))}
+        </div>
+
+        <div className="mt-16">
+          <h2
+            className="mb-10 text-center font-extrabold text-white"
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize:
+                "clamp(24px, 3vw, 44px)",
+              lineHeight: 1.1,
+              letterSpacing: "0.33px",
+            }}
+          >
+            Choose Your First Domain
+          </h2>
+
+          <div className="mx-auto grid w-fit grid-cols-1 gap-x-24 gap-y-7 sm:grid-cols-2">
+            {DOMAIN_OPTIONS.map(
+              (domain) => (
+                <DomainOption
+                  key={domain}
+                  name="firstDomain"
+                  value={domain}
+                  selectedValue={
+                    formData.firstDomain
+                  }
+                  onChange={
+                    handleDomainChange
+                  }
+                  label={domain}
+                />
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="mt-16">
+          <h2
+            className="mb-10 text-center font-extrabold text-white"
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize:
+                "clamp(24px, 3vw, 44px)",
+              lineHeight: 1.1,
+              letterSpacing: "0.33px",
+            }}
+          >
+            Choose Your Second Domain
+          </h2>
+
+          <div className="mx-auto grid w-fit grid-cols-1 gap-x-24 gap-y-7 sm:grid-cols-2">
+            {DOMAIN_OPTIONS.map(
+              (domain) => (
+                <DomainOption
+                  key={domain}
+                  name="secondDomain"
+                  value={domain}
+                  selectedValue={
+                    formData.secondDomain
+                  }
+                  onChange={
+                    handleDomainChange
+                  }
+                  label={domain}
+                />
+              )
+            )}
+          </div>
+        </div>
+
+        {errors.domains && (
+          <p
+            data-form-error="true"
+            className="mt-6 text-center font-normal"
+            style={{
+              color: ACCENT_RED,
+              fontFamily: FONT_FAMILY,
+              fontSize: 16,
+            }}
+          >
+            {errors.domains}
+          </p>
+        )}
+
+        <div className="mt-16 flex justify-center">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex items-center justify-center rounded-full border-2 font-extrabold text-white transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+            style={{
+              width:
+                "min(427px, 80vw)",
+              height: 72,
+              backgroundColor: ACCENT_RED,
+              borderColor: "#FFFFFF",
+              fontFamily: FONT_FAMILY,
+              fontSize: 24,
+            }}
+          >
+            {isSubmitting
+              ? "Submitting..."
+              : "Submit"}
+          </button>
+        </div>
+      </form>
+      <div
+  className="mx-auto"
+  style={{
+    width: "calc(100% - 120px)",
+    height: "3px",
+    backgroundColor: "#C32325",
+  }}
+/>
     </section>
-  )
+  );
 }

@@ -3,43 +3,70 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HeroSection() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
-      {/* ── Mobile Full-Screen Menu Overlay (rendered outside section to avoid overflow:hidden clipping) ── */}
+      {/* ── Mobile Full-Screen Menu Overlay ── */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-[200] flex flex-col items-center justify-between py-16 px-8 lg:hidden"
-          style={{ background: 'radial-gradient(ellipse at center, #6b0000 0%, #1a0000 50%, #000000 100%)' }}
+          style={{
+            background:
+              'radial-gradient(ellipse at center, #6b0000 0%, #1a0000 50%, #000000 100%)',
+          }}
         >
           {/* Close (X) button — top right */}
-          <div className="absolute top-6 right-6">
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              aria-label="Close menu"
-              className="text-white"
-            >
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <line x1="5" y1="5" x2="27" y2="27" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                <line x1="27" y1="5" x2="5" y2="27" stroke="white" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close menu"
+            className="text-white"
+          >
+            {/* Close icon */}
+            <span className="block relative w-8 h-8">
+              <span className="absolute top-1/2 left-0 w-8 h-[3px] bg-white rounded-full rotate-45" />
+              <span className="absolute top-1/2 left-0 w-8 h-[3px] bg-white rounded-full -rotate-45" />
+            </span>
+          </button>
 
           {/* Nav Links — vertically centered */}
           <div className="flex flex-col items-center justify-center flex-1 gap-12">
-            <Link href="/" className="text-3xl font-bold tracking-wide text-white hover:text-red-400 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-            <Link href="/domain" className="text-3xl font-bold tracking-wide text-white hover:text-red-400 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Domain</Link>
-            <Link href="/roadmap" className="text-3xl font-bold tracking-wide text-white hover:text-red-400 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Roadmap</Link>
+            <Link
+              href="#home"
+              className="text-3xl font-bold tracking-wide text-white hover:text-red-400 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+
+            <Link
+              href="#domain"
+              className="text-3xl font-bold tracking-wide text-white hover:text-red-400 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Domain
+            </Link>
+
+            <Link
+              href="#roadmap"
+              className="text-3xl font-bold tracking-wide text-white hover:text-red-400 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Roadmap
+            </Link>
           </div>
 
           {/* Register Now button — pinned to bottom */}
           <button
             className="w-full max-w-[260px] bg-[#C32325] hover:bg-[#a01c1e] text-white py-4 rounded-full font-bold text-xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(195,35,37,0.5)]"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              router.push('/recruitment26registerform');
+            }}
           >
             Register Now
           </button>
@@ -47,8 +74,10 @@ export default function HeroSection() {
       )}
 
       {/* ── Main Hero Section ── */}
-      <section className="relative w-full min-h-screen flex flex-col overflow-hidden bg-black text-white font-sans selection:bg-red-500 selection:text-white">
-
+      <section
+        id="home"
+        className="relative w-full min-h-screen flex flex-col overflow-hidden bg-black text-white font-sans selection:bg-red-500 selection:text-white"
+      >
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -62,7 +91,6 @@ export default function HeroSection() {
 
         {/* Navigation */}
         <nav className="relative z-10 w-full px-4 sm:px-8 md:px-12 py-4 sm:py-6 flex justify-between items-center">
-
           {/* Left: Logo + Title */}
           <div className="flex items-center gap-2 sm:gap-3">
             <Image
@@ -72,6 +100,7 @@ export default function HeroSection() {
               height={32}
               className="w-6 h-6 sm:w-8 sm:h-8"
             />
+
             <span className="text-base sm:text-lg font-medium tracking-wide">
               Alexa Developers SRM
             </span>
@@ -85,17 +114,37 @@ export default function HeroSection() {
               fill
               className="object-contain"
             />
-            <Link href="/" className="absolute left-0 top-0 w-[12.5%] h-full cursor-pointer" aria-label="Home" />
-            <Link href="/domain" className="absolute left-[19.8%] top-0 w-[16.4%] h-full cursor-pointer" aria-label="Domain" />
-            <Link href="/roadmap" className="absolute left-[43.1%] top-0 w-[21.1%] h-full cursor-pointer" aria-label="Roadmap" />
+
+            {/* Home */}
+            <Link
+              href="#home"
+              className="absolute left-0 top-0 w-[12.5%] h-full cursor-pointer"
+              aria-label="Home"
+            />
+
+            {/* Domain */}
+            <Link
+              href="#domain"
+              className="absolute left-[19.8%] top-0 w-[16.4%] h-full cursor-pointer"
+              aria-label="Domain"
+            />
+
+            {/* Roadmap */}
+            <Link
+              href="#roadmap"
+              className="absolute left-[43.1%] top-0 w-[21.1%] h-full cursor-pointer"
+              aria-label="Roadmap"
+            />
+
+            {/* Register Now */}
             <button
-              onClick={() => console.log('Nav Register Clicked')}
+              onClick={() => router.push('/recruitment26registerform')}
               className="absolute right-0 top-0 w-[29.4%] h-full cursor-pointer rounded-full hover:bg-white/10 transition-colors"
               aria-label="Register Now"
             />
           </div>
 
-          {/* Mobile: Hamburger button (3 white bars) */}
+          {/* Mobile: Hamburger button */}
           <button
             className="lg:hidden flex flex-col justify-center items-center gap-[6px] w-10 h-10"
             onClick={() => setIsMobileMenuOpen(true)}
@@ -105,12 +154,10 @@ export default function HeroSection() {
             <span className="block w-7 h-[3px] bg-white rounded-full" />
             <span className="block w-7 h-[3px] bg-white rounded-full" />
           </button>
-
         </nav>
 
         {/* Main Content Area */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full mt-[-5vh]">
-
           {/* Large Red Alexa Logo */}
           <div className="relative mb-4 sm:mb-6 transform hover:scale-105 transition-transform duration-500 mt-8 sm:mt-12">
             <Image
@@ -133,13 +180,12 @@ export default function HeroSection() {
               className="w-full h-auto drop-shadow-[0_0_15px_rgba(195,35,37,0.3)]"
             />
           </div>
-
         </div>
 
         {/* Bottom Register Now Button */}
         <div className="relative z-10 pb-32 sm:pb-48 flex justify-center w-full">
           <button
-            onClick={() => console.log('Bottom Register Clicked')}
+            onClick={() => router.push('/recruitment26registerform')}
             className="hover:scale-105 hover:brightness-110 active:scale-95 transition-all cursor-pointer group"
           >
             <Image
@@ -151,7 +197,6 @@ export default function HeroSection() {
             />
           </button>
         </div>
-
       </section>
     </>
   );
