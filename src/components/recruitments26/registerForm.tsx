@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { registerRecruitment26 } from "@/app/actions/registerRecruitments26";
 
 type FieldId =
   | "name"
@@ -485,18 +486,30 @@ export default function RegistrationForm() {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) =>
-        setTimeout(resolve, 700)
-      );
+      const result = await registerRecruitment26({
+        name: formData.name,
+        registrationNumber: formData.registrationNumber,
+        phoneNumber: formData.phoneNumber,
+        srmistEmail: formData.srmistEmail,
+        githubProfile: formData.githubProfile,
+        linkedinProfile: formData.linkedinProfile,
+        firstDomain: formData.firstDomain,
+        secondDomain: formData.secondDomain,
+      });
 
-      setSubmissionStatus("success");
+      if (result.success) {
+        setSubmissionStatus("success");
+        setFormData(INITIAL_FORM_DATA);
+        setErrors({});
 
-      setFormData(INITIAL_FORM_DATA);
-      setErrors({});
-
-      setTimeout(() => {
-        router.push("/recruitments26");
-      }, 2000);
+        setTimeout(() => {
+          router.push("/recruitments26");
+        }, 2000);
+      } else if ((result as { duplicate?: boolean }).duplicate) {
+        setSubmissionStatus("duplicate");
+      } else {
+        setSubmissionStatus("serverError");
+      }
     } catch {
       setSubmissionStatus("serverError");
     } finally {
