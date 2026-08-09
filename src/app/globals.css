@@ -23,6 +23,10 @@
   font-style: normal;
 }
 
+:root {
+  --font-formula1: "Formula1", "Formula1 Display", sans-serif;
+}
+
 input::placeholder {
   font-family: var(--font-roboto);
 }

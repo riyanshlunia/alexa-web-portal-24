@@ -22,6 +22,10 @@
   font-style: normal;
 }
 
+:root {
+  --font-formula1: "Formula1", "Formula1 Display", sans-serif;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
