@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface DomainCardProps {
   title: string;
@@ -34,10 +35,11 @@ function DomainCard({
       {/* Desktop Background */}
       {bgSvg && (
   <div className="absolute inset-0 z-0 hidden md:block">
-    <img
+    <Image
       src={bgSvg}
       alt="Desktop Card Background"
-      className="h-full w-full object-fill"
+      fill
+      className="object-fill"
     />
   </div>
 )}
@@ -45,10 +47,11 @@ function DomainCard({
       {/* Mobile Background & Fallback */}
       <div className="absolute inset-0 z-0 block md:hidden">
         {mobileBgSvg ? (
-          <img
+          <Image
             src={mobileBgSvg}
             alt="Mobile Card Background"
-            className="h-full w-full object-fill"
+            fill
+            className="object-fill"
           />
         ) : (
           <div
@@ -82,9 +85,11 @@ function DomainCard({
               carClass
             )}
           >
-            <img
+            <Image
               src={carSrc}
               alt={`${title} car`}
+              width={540}
+              height={300}
               className="h-auto w-full object-contain"
             />
           </div>
@@ -117,7 +122,7 @@ function DomainCard({
             "text-[28px] tracking-tight md:text-[68.64px] md:leading-none",
             colorClass
           )}
-          style={{ fontFamily: 'Formula1, sans-serif', fontWeight: 500 }}
+          style={{ fontFamily: 'var(--font-formula1), sans-serif', fontWeight: 500 }}
         >
           {title}
         </h2>
@@ -127,7 +132,7 @@ function DomainCard({
             "w-full text-[12px] leading-[1.4] text-[#e0e0e0] sm:text-sm md:text-[34.32px] md:leading-none",
             reverse ? "md:text-left" : "md:text-right"
           )}
-          style={{ fontFamily: 'Formula1, sans-serif', fontWeight: 400 }}
+          style={{ fontFamily: 'var(--font-formula1), sans-serif', fontWeight: 400 }}
         >
           {description}
         </p>
@@ -191,7 +196,7 @@ const DomainSection: React.FC = () => {
         <div className="mb-32 text-center md:mb-[210px]">
           <h2
             className="m-0 text-4xl font-black tracking-tight text-white sm:text-5xl md:text-[56px]"
-            style={{ fontFamily: 'Formula1, sans-serif' }}
+            style={{ fontFamily: 'var(--font-formula1), sans-serif' }}
           >
             Our <span className="text-[#E51E26]">Domains</span>
           </h2>
@@ -211,9 +216,11 @@ const DomainSection: React.FC = () => {
                 carClass={domain.carClass}
                 bgSvg={domain.bgSvg}
                 icon={
-                  <img
+                  <Image
                     src={domain.tyreSrc}
                     alt={`${domain.title} tyre icon`}
+                    width={290}
+                    height={290}
                     className="h-full w-full object-contain"
                   />
                 }

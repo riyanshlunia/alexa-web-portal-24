@@ -15,7 +15,7 @@ const toLocal = (figmaTop: number) =>
 const ACCENT_RED = "#C32325"
 const DESCRIPTION_COLOR = "#FFFFFF"
 const FONT_FAMILY =
-  "'Formula1', var(--font-montserrat-alternates), sans-serif"
+  "var(--font-formula1), var(--font-montserrat-alternates), sans-serif"
 
 const HEADING = {
   left: 427,
@@ -602,31 +602,6 @@ export default function RoadToAlexa() {
       id="roadmap"
       className="relative w-full overflow-visible bg-black pt-32 lg:pt-48"
     >
-      <style>{`
-        @font-face {
-          font-family: 'Formula1';
-          src: url('/recruitments26/Formula1-Regular.ttf') format('truetype');
-          font-weight: 100 499;
-          font-style: normal;
-          font-display: swap;
-        }
-
-        @font-face {
-          font-family: 'Formula1';
-          src: url('/recruitments26/Formula1-Bold.ttf') format('truetype');
-          font-weight: 500 900;
-          font-style: normal;
-          font-display: swap;
-        }
-
-        @font-face {
-          font-family: 'Formula1 Wide';
-          src: url('/recruitments26/Formula1-Wide.ttf') format('truetype');
-          font-weight: 100 900;
-          font-style: normal;
-          font-display: swap;
-        }
-      `}</style>
 
       <div
   className="pointer-events-none absolute left-0 top-[-360px] z-0 hidden w-full lg:block"

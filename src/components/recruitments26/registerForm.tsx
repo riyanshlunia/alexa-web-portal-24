@@ -45,7 +45,7 @@ type DomainOptionProps = {
 const ACCENT_RED = "#C32325";
 
 const FONT_FAMILY =
-  "'Formula1', var(--font-montserrat-alternates), sans-serif";
+  "var(--font-formula1), var(--font-montserrat-alternates), sans-serif";
 
 const DOMAIN_OPTIONS = [
   "Technical",
@@ -95,7 +95,7 @@ function validateField(
   }
 
   if (id === "srmistEmail") {
-    if (!/^[^\s@]+@srmist\.edu\.in$/.test(trimmedValue)) {
+    if (!/^[a-zA-Z]{2}\d{4}@srmist\.edu\.in$/.test(trimmedValue)) {
       return "Please enter a valid SRMIST email address.";
     }
   }
@@ -293,7 +293,7 @@ const FIELDS: {
     label: "SRMIST Email*",
     required: true,
     type: "email",
-    placeholder: "xyz@srmist.edu.in",
+    placeholder: "ab1234@srmist.edu.in",
   },
   {
     id: "githubProfile",
@@ -520,22 +520,6 @@ export default function RegistrationForm() {
   }}
 >
       <style>{`
-        @font-face {
-          font-family: 'Formula1';
-          src: url('/recruitments26/Formula1-Regular.ttf') format('truetype');
-          font-weight: 100 499;
-          font-style: normal;
-          font-display: swap;
-        }
-
-        @font-face {
-          font-family: 'Formula1';
-          src: url('/recruitments26/Formula1-Bold.ttf') format('truetype');
-          font-weight: 500 900;
-          font-style: normal;
-          font-display: swap;
-        }
-
         input::placeholder {
           color: rgba(255, 255, 255, 0.60);
           opacity: 1;
