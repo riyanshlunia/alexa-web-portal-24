@@ -502,9 +502,7 @@ export default function RegistrationForm() {
         setFormData(INITIAL_FORM_DATA);
         setErrors({});
 
-        setTimeout(() => {
-          router.push("/recruitments26");
-        }, 2000);
+        router.push("/recruitment26registerform/success");
       } else if ((result as { duplicate?: boolean }).duplicate) {
         setSubmissionStatus("duplicate");
       } else {
