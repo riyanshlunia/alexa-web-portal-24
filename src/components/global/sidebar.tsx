@@ -64,7 +64,7 @@ const SidebarButton = ({ menuItems }: Props) => {
           <DropdownMenuItem asChild>
             <Link href="/recruitments26" className="flex flex-col space-y-1">
               <button className="px-8 py-2 rounded-full bg-gradient-to-b from-[#00B5FF] to-[#00CDC1] text-white focus:ring-2 focus:ring-blue-400 hover:shadow-xl transition duration-200">
-                Recruitments 26
+                Recruitments '26
               </button>
             </Link>
           </DropdownMenuItem>
