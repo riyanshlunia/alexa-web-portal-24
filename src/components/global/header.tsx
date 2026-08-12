@@ -65,7 +65,7 @@ const Navbar = () => {
                   className="px-2 bg-transparent cursor-pointer"
                   animate={false}
                 >
-                  <li className={clsx("bg-transparent")}> 
+                  <li className={clsx("bg-transparent")}>
                     <Link href={item.url} className="cursor-pointer">
                       {item.title}
                     </Link>
@@ -74,7 +74,9 @@ const Navbar = () => {
               ) : (
                 <li
                   key={index}
-                  className={clsx("bg-transparent hover:font-bold cursor-pointer")}
+                  className={clsx(
+                    "bg-transparent hover:font-bold cursor-pointer",
+                  )}
                 >
                   <Link href={item.url} className="block cursor-pointer">
                     <button className="px-6 py-2 text-white rounded-lg font-bold transform hover:-translate-y-1 transition duration-400 cursor-pointer">
@@ -87,11 +89,11 @@ const Navbar = () => {
             <Link href={"/recruitments26"} className="block cursor-pointer">
               <li
                 className={clsx(
-                  "px-6 py-2 shadow-2xl drop-shadow-2xl text-white rounded-lg font-extrabold transform hover:-translate-y-1 transition duration-400 cursor-pointer"
+                  "px-6 py-2 shadow-2xl drop-shadow-2xl text-white rounded-lg font-extrabold transform hover:-translate-y-1 transition duration-400 cursor-pointer",
                 )}
               >
                 <button className="px-8 py-2 rounded-full bg-gradient-to-b from-[#00B5FF] to-[#00CDC1] text-white focus:ring-2 focus:ring-blue-400 hover:shadow-xl transition duration-200 cursor-pointer">
-                  Recruitments 26
+                  Recruitments '26
                 </button>
                 {/* <span className="text-[#980F35]">Alexa</span>
                 <span className="text-[#AF6922]">Verse</span> */}

@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const FORMULA_FONT = "var(--font-formula1), var(--font-montserrat-alternates), sans-serif";
+const FORMULA_FONT =
+  "var(--font-formula1), var(--font-montserrat-alternates), sans-serif";
 
 export default function Recruitment26SuccessPage() {
   return (
@@ -22,6 +23,22 @@ export default function Recruitment26SuccessPage() {
           </h1>
         </div>
 
+        <div className="max-w-2xl text-center">
+          <h2
+            className="mb-3 text-2xl font-bold text-white md:text-3xl"
+            style={{ fontFamily: FORMULA_FONT }}
+          >
+            Join the WhatsApp group
+          </h2>
+          <p
+            className="text-base text-white/75 md:text-lg"
+            style={{ fontFamily: FORMULA_FONT }}
+          >
+            Scan the QR code below or use the link to join the registered
+            members WhatsApp group.
+          </p>
+        </div>
+
         <div className="rounded-[28px] border border-[#C32325]/60 bg-[#1a1a1a] p-4 md:p-6">
           <Image
             src="/recruitments26/whatsapp-gc-qr.jpg"
@@ -34,18 +51,21 @@ export default function Recruitment26SuccessPage() {
         </div>
 
         <div className="max-w-2xl text-center">
-          <h2
-            className="mb-3 text-2xl font-bold text-white md:text-3xl"
-            style={{ fontFamily: FORMULA_FONT }}
-          >
-            Join the WhatsApp group
-          </h2>
           <p
-            className="text-base text-white/75 md:text-lg"
+            className="mb-2 text-sm text-white/75 md:text-base"
             style={{ fontFamily: FORMULA_FONT }}
           >
-            Scan the QR code above to join the registered members WhatsApp group and stay updated with all recruitment announcements.
+            Or click this link to join directly:
           </p>
+          <a
+            href="https://chat.whatsapp.com/KLZPw242JZG2EjUmga3uu6?s=sh&p=i&ilr=0&amv=2"
+            target="_blank"
+            rel="noreferrer"
+            className="break-words text-base font-semibold text-[#C32325] hover:text-white"
+            style={{ fontFamily: FORMULA_FONT }}
+          >
+            https://chat.whatsapp.com/KLZPw242JZG2EjUmga3uu6?s=sh&p=i&ilr=0&amv=2
+          </a>
         </div>
 
         <Link
