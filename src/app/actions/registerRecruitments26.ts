@@ -93,6 +93,34 @@ export async function registerRecruitment26(data: RegistrationData26) {
       }
     }
 
+    // Check for existing duplicates explicitly
+    const { data: existingData, error: checkError } = await supabase
+      .from('recruitment_entries')
+      .select('register_number, srmist_email, phone_number')
+      .or(`register_number.eq.${data.registrationNumber.trim()},srmist_email.eq.${data.srmistEmail.trim()},phone_number.eq.${data.phoneNumber.trim()}`)
+      
+    if (checkError) {
+      console.error('[registerRecruitment26] Error checking for duplicates:', checkError)
+      return {
+        success: false,
+        error: 'Error validating registration. Please try again.',
+      }
+    }
+
+    if (existingData && existingData.length > 0) {
+      const existing = existingData[0];
+      if (existing.register_number === data.registrationNumber.trim()) {
+         return { success: false, duplicate: true, error: 'This registration number is already registered.' }
+      }
+      if (existing.srmist_email === data.srmistEmail.trim()) {
+         return { success: false, duplicate: true, error: 'This SRMIST email is already registered.' }
+      }
+      if (existing.phone_number === data.phoneNumber.trim()) {
+         return { success: false, duplicate: true, error: 'This phone number is already registered.' }
+      }
+      return { success: false, duplicate: true, error: 'You are already registered.' }
+    }
+
     const { data: result, error } = await supabase
       .from('recruitment_entries')
       .insert([
