@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ALLOWED_ORIGINS = [
+const ALLOWED_ORIGINS = new Set([
   "https://alexadevsrm.com",
   "https://www.alexadevsrm.com",
-];
+  ...(process.env.ALLOWED_ORIGINS?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? []),
+]);
 
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Frame-Options": "DENY",
@@ -14,9 +15,10 @@ const SECURITY_HEADERS: Record<string, string> = {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https://cdn.sanity.io https://*.supabase.co",
-    "connect-src 'self' https://*.supabase.co https://*.vercel.app",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://cdn.sanity.io https://*.supabase.co https://api.qrserver.com",
+    "connect-src 'self' https://*.supabase.co https://*.vercel.app https://*.onrender.com https://*.leapcell.dev https://*.sanity.io https://*.api.sanity.io",
+    "frame-src 'self' https://lu.ma",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -26,11 +28,19 @@ const SECURITY_HEADERS: Record<string, string> = {
 export function middleware(request: NextRequest) {
   const { search } = request.nextUrl;
   const origin = request.headers.get("origin") ?? "";
+  const isAllowedOrigin =
+    origin === request.nextUrl.origin || ALLOWED_ORIGINS.has(origin);
+  const isStateChangingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(
+    request.method
+  );
 
   const isRscRequest = search.includes("_rsc=");
-  const isExternalOrigin = origin && !ALLOWED_ORIGINS.includes(origin);
+  const isExternalOrigin = origin && !isAllowedOrigin;
 
-  if (isRscRequest && isExternalOrigin) {
+  if (
+    isExternalOrigin &&
+    (isRscRequest || isStateChangingRequest || request.method === "OPTIONS")
+  ) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
@@ -41,7 +51,7 @@ export function middleware(request: NextRequest) {
   });
 
   if (origin) {
-    if (ALLOWED_ORIGINS.includes(origin)) {
+    if (isAllowedOrigin) {
       response.headers.set("Access-Control-Allow-Origin", origin);
       response.headers.set("Vary", "Origin");
     } else {

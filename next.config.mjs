@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  outputFileTracingRoot: "D:/Coding/alexa/alexa-web-portal-24",
-
   images: {
     remotePatterns: [
       {
@@ -12,6 +10,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "*.supabase.co",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "api.qrserver.com",
         port: "",
       },
     ],
@@ -35,9 +38,10 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://cdn.sanity.io https://*.supabase.co",
-              "connect-src 'self' https://*.supabase.co https://*.vercel.app",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' data: blob: https://cdn.sanity.io https://*.supabase.co https://api.qrserver.com",
+              "connect-src 'self' https://*.supabase.co https://*.vercel.app https://*.onrender.com https://*.leapcell.dev https://*.sanity.io https://*.api.sanity.io",
+              "frame-src 'self' https://lu.ma",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
